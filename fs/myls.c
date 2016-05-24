@@ -1,12 +1,18 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
 #include <unistd.h>
+
 
 int main(int argc, char **argv)
 {
     struct stat st;
     mode_t m;
+    struct passwd *user_entry;
+    struct group *group_entry;
 
     if (argc == 1) {
         fprintf(stderr, "No args\n");
@@ -98,12 +104,21 @@ int main(int argc, char **argv)
 
     printf(" %3llu", (unsigned long long)st.st_nlink);
 
-    printf(" %5d", st.st_uid); // Will replace with user/group names in the next iteration
-    printf(" %5d", st.st_gid);
 
+    user_entry = getpwuid(st.st_uid);
+    if (user_entry)
+        printf(" %10s", user_entry->pw_name);
+    else
+        printf(" %10d", st.st_uid);
 
-    printf(" %7.7lld", (long long)st.st_mtime); // Will replace with string representation in the next iteration
-    putchar('\n');
+    group_entry = getgrgid(st.st_gid);
+    if (group_entry)
+        printf(" %10s", group_entry->gr_name);
+    else
+        printf(" %10d", st.st_gid);
+
+    printf(" %8lu", (unsigned long)st.st_size);
+    printf(" %10s", ctime(&st.st_mtime));
 
     return 0;
 }
